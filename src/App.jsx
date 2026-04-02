@@ -1,5 +1,7 @@
 import ReactMarkdown from "react-markdown";
 import { useState, useRef } from "react";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 // Replace with your HuggingFace Spaces URL after deployment
@@ -386,7 +388,32 @@ export default function App() {
             {/* Answer */}
             <div style={s.sectionTitle}>Answer</div>
             <div style={s.answerBox}>
-              <ReactMarkdown>{response.answer}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  code({node, inline, className, children, ...props}) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    // SCL (Structured Control Language) is extremely similar to Pascal 
+                    const lang = match ? (match[1].toLowerCase() === 'scl' ? 'pascal' : match[1]) : '';
+                    return !inline && match ? (
+                      <SyntaxHighlighter
+                        {...props}
+                        style={vscDarkPlus}
+                        language={lang}
+                        PreTag="div"
+                        customStyle={{ borderRadius: '6px', fontSize: '13px', margin: '0' }}
+                      >
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code {...props} className={className} style={{ backgroundColor: '#d0d8f0', padding: '2px 5px', borderRadius: '4px', fontSize: '13px', color: '#002060' }}>
+                        {children}
+                      </code>
+                    )
+                  }
+                }}
+              >
+                {response.answer}
+              </ReactMarkdown>
             </div>
 
             {/* Latency */}
