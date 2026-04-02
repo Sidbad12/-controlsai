@@ -425,7 +425,7 @@ export default function App() {
                   }
                 }}
               >
-                {response.answer}
+                {response.answer.replace(/\[Source \d+\s*\|[\s\S]*?Pages\s*\[.*?\]\]\s*/g, '')}
               </ReactMarkdown>
             </div>
 
