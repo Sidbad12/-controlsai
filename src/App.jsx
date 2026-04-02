@@ -1,3 +1,4 @@
+import ReactMarkdown from "react-markdown";
 import { useState, useRef } from "react";
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
@@ -385,7 +386,7 @@ export default function App() {
             {/* Answer */}
             <div style={s.sectionTitle}>Answer</div>
             <div style={s.answerBox}>
-              {response.answer}
+              <ReactMarkdown>{response.answer}</ReactMarkdown>
             </div>
 
             {/* Latency */}
