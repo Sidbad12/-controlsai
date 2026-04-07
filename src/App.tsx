@@ -18,6 +18,7 @@ import { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { fetchUserSessions, syncUserSession, removeUserSession, checkUserAccess } from './db';
 import type { Session, Message, QueryApiResponse } from './types';
+import { toast } from 'sonner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -160,6 +161,7 @@ export default function App() {
       return result;
     });
     if (authUser) removeUserSession(authUser.uid, id);
+    toast.success('Session removed', { description: 'The conversation has been deleted.' });
   }, [activeId, authUser]);
 
   const handlePdfClick = useCallback((url: string, pages: number[]) => {

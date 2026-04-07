@@ -5,6 +5,7 @@ import {
   Trash2, Pencil, PanelLeftClose, PanelLeftOpen,
   Search, Settings2, Tag, ChevronDown, ChevronUp
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { Session } from '../types';
 import { VERSIONS } from '../config';
 
@@ -110,11 +111,20 @@ export default function Sidebar({
           <div className="px-3 py-2 text-xs text-[#555555]">No sessions yet</div>
         )}
 
-        {sessions.map((sess) => {
-          const isActive = sess.id === activeId;
-          const isEditing = editingId === sess.id;
-          return (
-            <div key={sess.id} className="relative group/item">
+        <AnimatePresence initial={false}>
+          {sessions.map((sess) => {
+            const isActive = sess.id === activeId;
+            const isEditing = editingId === sess.id;
+            return (
+              <motion.div 
+                layout 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                key={sess.id} 
+                className="relative group/item"
+              >
               {isEditing ? (
                 <input
                   autoFocus
@@ -162,9 +172,10 @@ export default function Sidebar({
                   </button>
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
       </nav>
 
       {/* Environment / Version */}

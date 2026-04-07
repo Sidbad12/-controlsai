@@ -1,6 +1,7 @@
 // InputBar.tsx — Message input with Lucide icons, save indicator, disabled upload tooltip
 import { useRef, useEffect, useState } from 'react';
 import { Send, Upload, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface InputBarProps {
   input    : string;
@@ -61,17 +62,18 @@ export default function InputBar({ input, loading, mode, saveState, onChange, on
             </div>
 
             {/* Send */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95 }}
               onClick={onSubmit}
               disabled={loading || !input.trim()}
-              className="bg-[#0050C0] text-white p-2.5 hover:bg-[#003080] transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95 flex items-center justify-center"
+              className="bg-[#0050C0] text-white p-2.5 hover:bg-[#003080] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
               title="Send (Ctrl+Enter)"
             >
               {loading
                 ? <Loader2 size={18} className="animate-spin" />
                 : <Send size={18} />
               }
-            </button>
+            </motion.button>
           </div>
         </div>
 

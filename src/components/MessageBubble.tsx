@@ -127,14 +127,15 @@ export default function MessageBubble({ m, sessionId, index, onImageClick, onPdf
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#999999] w-full mb-1">Sources</span>
               {m.sources.map((src, si) =>
                 src.pdf_url ? (
-                  <button key={si}
+                  <motion.button key={si}
+                    whileHover={{ y: -2 }}
                     onClick={() => onPdfClick(`${API_BASE}${src.pdf_url}`, src.pages || [])}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-[#0050C0]/5 hover:bg-[#0050C0]/10 border border-[#0050C0]/20 text-[#0050C0] transition-colors text-[11px] font-medium"
                     title="Open PDF"
                   >
                     <span className="material-symbols-outlined text-[14px]">article</span>
                     {src.section?.slice(0, 26)} · p.{src.pages?.join(',')}
-                  </button>
+                  </motion.button>
                 ) : (
                   <span key={si} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-surface text-outline border border-[#EAEAEA] text-[11px] font-medium">
                     {src.section?.slice(0, 28)} · p.{src.pages?.join(',')}
@@ -148,7 +149,9 @@ export default function MessageBubble({ m, sessionId, index, onImageClick, onPdf
           {m.images && m.images.length > 0 && (
             <div className="mt-6 pt-4 border-t border-[#EAEAEA] grid grid-cols-2 gap-4">
                {m.images.map((img, ii) => (
-                  <div key={ii} className="bg-white p-2 border border-[#C8D8F0]/40 rounded-sm group hover:border-[#0050C0] transition-colors cursor-pointer" onClick={() => onImageClick(`${API_BASE}${img.image_url}`)}>
+                  <motion.div key={ii} 
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="bg-white p-2 border border-[#C8D8F0]/40 rounded-sm group hover:border-[#0050C0] transition-colors cursor-pointer" onClick={() => onImageClick(`${API_BASE}${img.image_url}`)}>
                     <img
                       src={`${API_BASE}${img.image_url}`}
                       alt={img.caption || 'Diagram'}
@@ -159,7 +162,7 @@ export default function MessageBubble({ m, sessionId, index, onImageClick, onPdf
                         {img.caption || img.explanation}
                       </span>
                     )}
-                  </div>
+                  </motion.div>
                ))}
             </div>
           )}
