@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlsAI // Entry Terminal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+    
+    :root {
+      --bg-main: #1c1917;
+      --bg-panel: #252220;
+      --border: #2e2b28;
+      --text-primary: #d4cfc8;
+      --text-muted: #7a756e;
+      --text-dim: #4a4640;
+      --success: #6a9e7f;
+      --active: #7a9eb5;
+      --highlight: #c4a96b;
+      --danger: #b87070;
+      --warning: #b0896a;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+    }
+    
+    .panel {
+      border: 1px solid var(--border);
+      background-color: var(--bg-panel);
+    }
+
+    .btn-tui {
+      border: 1px solid var(--border);
+      padding: 0.5rem 1rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .btn-tui:hover {
+      background-color: var(--border);
+      color: var(--highlight);
+    }
+    .btn-primary-tui {
+      border: 1px solid var(--active);
+      color: var(--active);
+    }
+    .btn-primary-tui:hover {
+      background-color: var(--active);
+      color: var(--bg-main);
+    }
+
+    .blink { animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    
+    /* Scroll smoothing */
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="min-h-screen w-screen flex flex-col p-8 gap-12 overflow-x-hidden">
+
+  <!-- 1. Header Navigation -->
+  <header class="flex justify-between items-center shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="text-[--active] font-bold text-xl tracking-tighter uppercase font-industrial">
+        CONTROLSAI
+      </div>
+      <div class="h-4 w-[1px] bg-[--border]"></div>
+      <div class="text-[--text-muted] text-[10px] uppercase tracking-[0.2em] font-medium">
+        Systems Analyzer // Comm-Link Terminal
+      </div>
+    </div>
+    <div class="flex gap-4">
+      <div class="btn-tui border-[--success] text-[--success] hover:bg-[--success] hover:text-[--bg-main]">
+        [ SWITCH TO NORMAL_MODE ]
+      </div>
+      <div class="btn-tui">
+        [ SIGN_IN ]
+      </div>
+      <div class="btn-tui btn-primary-tui">
+        [ LAUNCH TERMINAL ]
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. Hero Section -->
+  <section class="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pt-10">
+    <div class="flex flex-col gap-8">
+      <div class="flex items-center gap-3">
+        <span class="text-[--highlight] text-[10px] font-bold border border-[--highlight] px-2 py-0.5 uppercase tracking-widest">
+          SYSTEM_STATUS: OK_ONLINE
+        </span>
+      </div>
+      <h1 class="text-6xl md:text-7xl font-bold leading-none tracking-tighter">
+        THE PLC<br>
+        <span class="text-[--active]">ENGINEER'S</span><br>
+        SECOND BRAIN.
+      </h1>
+      <p class="text-[--text-muted] text-lg leading-relaxed max-w-lg">
+        Deterministic SCL generation. Manual-verified RAG searching. 
+        Bridge the gap between conceptual flowcharts and production logic.
+      </p>
+      <div class="flex gap-4 pt-4">
+        <div class="btn-tui btn-primary-tui text-lg py-4 px-10">
+          > START_Q&A_SESSION
+        </div>
+        <div class="btn-tui text-lg py-4 px-10">
+          > DESIGN_LOGIC_BLOCK
+        </div>
+      </div>
+    </div>
+    
+    <!-- Code Preview Logic Box -->
+    <div class="panel p-6 relative flex flex-col min-h-[300px]">
+      <div class="absolute -top-3 left-6 bg-[#1c1917] px-2 text-[--danger] font-bold text-[10px] uppercase tracking-widest">
+        Active_Compilation_Window
+      </div>
+      <div class="text-[12px] leading-relaxed text-[--text-muted] h-full overflow-hidden">
+        <pre>
+<span class="text-[--text-dim]">01</span> <span class="text-[--success]">FUNCTION_BLOCK</span> "ControlLogic"
+<span class="text-[--text-dim]">02</span> <span class="text-[--active]">VAR_INPUT</span>
+<span class="text-[--text-dim]">03</span>     i_Start : <span class="text-[--warning]">BOOL</span>;
+<span class="text-[--text-dim]">04</span>     i_EStop : <span class="text-[--warning]">BOOL</span>;
+<span class="text-[--text-dim]">05</span> <span class="text-[--active]">END_VAR</span>
+<span class="text-[--text-dim]">06</span> <span class="text-[--active]">REGION</span> Logic_Processing
+<span class="text-[--text-dim]">07</span>     <span class="text-[--active]">IF</span> i_Start <span class="text-[--active]">AND NOT</span> i_EStop <span class="text-[--active]">THEN</span>
+<span class="text-[--text-dim]">08</span>         #q_MotorRun := <span class="text-[--success]">TRUE</span>;
+<span class="text-[--text-dim]">09</span>         #Status := <span class="text-[--highlight]">16#F001</span>; <span class="text-[--text-dim]">// OK</span>
+<span class="text-[--text-dim]">10</span>     <span class="text-[--active]">ELSE</span>
+<span class="text-[--text-dim]">11</span>         #q_MotorRun := <span class="text-[--danger]">FALSE</span>;
+<span class="text-[--text-dim]">12</span>     <span class="text-[--active]">END_IF</span>;
+<span class="text-[--text-dim]">13</span> <span class="text-[--active]">END_REGION</span>
+        </pre>
+      </div>
+      <div class="mt-auto border-t border-[--border] pt-4 flex justify-between items-center text-[10px]">
+        <span class="text-[--active]">COMPILATION COMPLETE</span>
+        <span class="text-[--text-dim]">LOC: 13 // CHECKSUM: 0x8A4B</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Features Bento (Refined TUI Style) -->
+  <section class="max-w-6xl mx-auto w-full flex flex-col gap-8 pt-20">
+    <div class="flex items-center gap-4">
+      <h2 class="text-3xl font-bold tracking-tight uppercase">ENGINEERED_SYSTEMS_CORE</h2>
+      <div class="h-[1px] flex-1 bg-[--border]"></div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- Feature 1 -->
+      <div class="panel p-8 flex flex-col gap-4 group hover:border-[--active] transition-colors">
+        <div class="text-[--active] flex items-center justify-between">
+          <span class="font-bold uppercase tracking-widest text-[11px]">RAG-Powered Q&A</span>
+          <span class="text-[--text-dim]">[01]</span>
+        </div>
+        <p class="text-[--text-muted] text-sm leading-relaxed">
+          Semantic search over Siemens S7-1200 Function Manuals. Every answer cites the exact section and page. Powered by FAISS + BM25 hybrid retrieval.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="panel p-8 flex flex-col gap-4 group hover:border-[--active] transition-colors">
+        <div class="text-[--active] flex items-center justify-between">
+          <span class="font-bold uppercase tracking-widest text-[11px]">Flowchart → SCL</span>
+          <span class="text-[--text-dim]">[02]</span>
+        </div>
+        <p class="text-[--text-muted] text-sm leading-relaxed">
+          Paste a Mermaid process diagram. Get a runnable IEC 61131-3 SCL Function Block — S7-Optimized, ready for TIA Portal.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="panel p-8 flex flex-col gap-4 group hover:border-[--active] transition-colors">
+        <div class="text-[--active] flex items-center justify-between">
+          <span class="font-bold uppercase tracking-widest text-[11px]">Safety Checker</span>
+          <span class="text-[--text-dim]">[03]</span>
+        </div>
+        <p class="text-[--text-muted] text-sm leading-relaxed">
+          Automatic flagging of missing interlocks, uninitialized outputs, and SIL compliance gaps before code leaves the terminal.
+        </p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="panel p-8 flex flex-col gap-4 group hover:border-[--active] transition-colors">
+        <div class="text-[--active] flex items-center justify-between">
+          <span class="font-bold uppercase tracking-widest text-[11px]">PDF Citation Engine</span>
+          <span class="text-[--text-dim]">[04]</span>
+        </div>
+        <p class="text-[--text-muted] text-sm leading-relaxed">
+          Every Q&A response links directly to the source manual page. Open PDFs inline using the integrated Vaul-powered drawer.
+        </p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="panel p-8 flex flex-col gap-4 group hover:border-[--active] transition-colors">
+        <div class="text-[--active] flex items-center justify-between">
+          <span class="font-bold uppercase tracking-widest text-[11px]">Version Targeting</span>
+          <span class="text-[--text-dim]">[05]</span>
+        </div>
+        <p class="text-[--text-muted] text-sm leading-relaxed">
+          Filter answers by firmware version — TIA V17, V18, V19 — so you always get version-accurate code for your specific hardware.
+        </p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="panel p-8 flex flex-col gap-4 group hover:border-[--active] transition-colors">
+        <div class="text-[--active] flex items-center justify-between">
+          <span class="font-bold uppercase tracking-widest text-[11px]">Zero Cloud Exposure</span>
+          <span class="text-[--text-dim]">[06]</span>
+        </div>
+        <p class="text-[--text-muted] text-sm leading-relaxed">
+          Your PLC logic never leaves your machine. Session memory stored locally in IndexedDB. Privacy by design.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 4. CTA / Footer Area -->
+  <section class="max-w-4xl mx-auto w-full py-20 flex flex-col items-center gap-8 text-center">
+    <div class="h-[2px] w-24 bg-[--active]"></div>
+    <h2 class="text-4xl font-bold uppercase tracking-tight">READY_TO_EVOLVE_YOUR_LOGIC?</h2>
+    <p class="text-[--text-muted] max-w-lg mb-4">
+      Get early access to the CONTROLSAI Terminal and start architecting industrial systems with the speed of thought.
+    </p>
+    <div class="flex w-full gap-4 max-w-xl">
+      <input type="text" placeholder="ENTER_CORPORATE_EMAIL..." class="flex-1 bg-white/5 border border-[--border] p-4 text-white focus:outline-none focus:border-[--active] font-mono text-xs">
+      <div class="btn-tui btn-primary-tui py-4 px-8">
+        REQUEST_ACCESS
+      </div>
+    </div>
+  </section>
+
+  <footer class="flex justify-between items-center text-[10px] text-[--text-dim] uppercase tracking-widest py-8 border-t border-[--border]">
+    <div>@2026_KURO // INDUSTRIAL_LOGIC_SYNTHESIS</div>
+    <div class="flex gap-8">
+      <span class="hover:text-[--text-primary] cursor-pointer">PRIVACY_POLICY</span>
+      <span class="hover:text-[--text-primary] cursor-pointer">TERMS_OF_SERVICE</span>
+    </div>
+    <div class="text-[--text-muted]">AWAITING_COMMAND<span class="blink text-white ml-2">_</span></div>
+  </footer>
+
+</body>
+</html>

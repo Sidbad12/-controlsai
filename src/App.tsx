@@ -1,5 +1,6 @@
 // App.tsx — Root component. Full view routing + Dexie DB + auth + command palette.
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { ArrowRight, Zap, Lock, BarChart3, ArrowLeft, ExternalLink, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import LandingPage      from './components/LandingPage';
@@ -11,6 +12,7 @@ import PdfViewerModal   from './components/PdfViewerModal';
 import CommandPalette   from './components/CommandPalette';
 import PrivacyPage      from './components/PrivacyPage';
 import TermsPage        from './components/TermsPage';
+import LogicWorkbench   from './components/LogicWorkbench';
 
 import { API_BASE, API_KEY }                 from './config';
 import { generateId, sanitizeInput, buildHistory } from './utils';
@@ -46,11 +48,53 @@ export default function App() {
   const [pdfPage,    setPdfPage]   = useState(0);
   const [collapsed,  setCollapsed] = useState(false);
   const [paletteOpen,setPalette]   = useState(false);
+  const [uiMode,     setUiMode]    = useState<'normal' | 'tui'>(
+    (localStorage.getItem('controlsai_ui_mode') as 'normal' | 'tui') || 'normal'
+  );
   const [saveState,  setSaveState] = useState<SaveState>('idle');
+  const [workbenchWidth, setWorkbenchWidth] = useState<number>(() => {
+    const saved = localStorage.getItem('controlsai_workbench_width');
+    return saved ? parseFloat(saved) : 50;
+  });
+  const [isResizing, setIsResizing] = useState(false);
   const saveTimer                  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Active session derived
   const activeSession: Session = sessions.find((s) => s.id === activeId) ?? sessions[0] ?? defaultSession();
+
+  useEffect(() => {
+    localStorage.setItem('controlsai_ui_mode', uiMode);
+    document.documentElement.setAttribute('data-ui-mode', uiMode);
+  }, [uiMode]);
+
+  useEffect(() => {
+    localStorage.setItem('controlsai_workbench_width', workbenchWidth.toString());
+  }, [workbenchWidth]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    setIsResizing(true);
+    e.preventDefault();
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing) return;
+      const newWidth = ((window.innerWidth - e.clientX) / window.innerWidth) * 100;
+      if (newWidth > 20 && newWidth < 80) {
+        setWorkbenchWidth(newWidth);
+      }
+    };
+    const handleMouseUp = () => setIsResizing(false);
+
+    if (isResizing) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   // Ensure activeId is always valid
   useEffect(() => {
@@ -136,6 +180,10 @@ export default function App() {
     setView('dashboard');
   }, [sessions, updateSessions]);
 
+  const toggleUiMode = useCallback(() => {
+    setUiMode(prev => prev === 'normal' ? 'tui' : 'normal');
+  }, []);
+
   // ── Session handlers ──────────────────────────────────────────────────────
   const handleNewSession = useCallback((mode: 'qa' | 'flowchart') => {
     const sess: Session = { id: generateId(), title: 'New Chat', mode, messages: [] };
@@ -152,8 +200,7 @@ export default function App() {
     setActiveId(id); setInput('');
   }, []);
 
-  const handleDeleteSession = useCallback((e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
+  const handleDeleteSession = useCallback((id: string) => {
     setSessions((prev) => {
       const next = prev.filter((s) => s.id !== id);
       const result = next.length === 0 ? [{ id: generateId(), title: 'New Chat', mode: 'qa' as const, messages: [] }] : next;
@@ -163,6 +210,12 @@ export default function App() {
     if (authUser) removeUserSession(authUser.uid, id);
     toast.success('Session removed', { description: 'The conversation has been deleted.' });
   }, [activeId, authUser]);
+
+  const handleLogout = useCallback(() => {
+    const { getAuth, signOut } = (window as any).Firebase;
+    if (getAuth) signOut(getAuth());
+    setView('landing');
+  }, []);
 
   const handlePdfClick = useCallback((url: string, pages: number[]) => {
     setPdfUrl(url);
@@ -267,6 +320,8 @@ export default function App() {
       <LandingPage
         user={authUser}
         isLoggedIn={!!authUser}
+        uiMode={uiMode}
+        onToggleMode={toggleUiMode}
         onLogout={() => auth.signOut()}
         onStartChat={() => authUser ? setView('dashboard') : setView('login')}
         onStartFlowchart={() => authUser ? setView('dashboard') : setView('login')}
@@ -292,7 +347,11 @@ export default function App() {
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
   return (
-    <div className="flex h-screen bg-[#fcf9f8] overflow-hidden" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div 
+      className={`flex h-screen overflow-hidden transition-colors duration-300 ${
+        uiMode === 'tui' ? 'bg-[#1c1917]' : 'bg-[#fcf9f8]'
+      }`} 
+    >
 
       {/* Command Palette */}
       <CommandPalette
@@ -324,27 +383,42 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <Sidebar
         user={authUser}
         sessions={sessions}
         activeId={activeId}
         collapsed={collapsed}
         version={version}
+        uiMode={uiMode}
         onNewSession={handleNewSession}
         onSwitchSession={handleSwitchSession}
         onDeleteSession={handleDeleteSession}
         onVersionChange={setVersion}
+        onLogout={handleLogout}
         onToggleCollapse={() => setCollapsed((c) => !c)}
         onOpenPalette={() => setPalette(true)}
       />
 
       {/* Main panel */}
-      <main className="flex-1 flex flex-col min-w-0 bg-[#fcf9f8] relative overflow-hidden">
+      <main className={`flex-1 flex flex-col min-w-0 relative overflow-hidden ${uiMode === 'tui' ? 'bg-[#1c1917]' : 'bg-[#fcf9f8]'}`}>
 
         {/* Header */}
-        <header className="flex justify-between items-center w-full px-8 py-4 border-b border-[#C8D8F0]/20 bg-[#fcf9f8]/80 backdrop-blur-md sticky top-0 z-40">
+        <header className={`flex justify-between items-center w-full px-8 py-4 border-b backdrop-blur-md sticky top-0 z-40 ${
+          uiMode === 'tui' ? 'bg-[#1c1917]/80 border-[#2e2b28]' : 'bg-[#fcf9f8]/80 border-[#C8D8F0]/20'
+        }`}>
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1 -ml-1 text-[#757681] hover:text-[#000d33] transition-colors"
+              title={collapsed ? "Open Sidebar" : "Close Sidebar"}
+            >
+              {collapsed ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/><path d="m14 15-3-3 3-3"/></svg>
+              )}
+            </button>
+            <div className="w-[1px] h-4 bg-[#757681]/20 mx-1" />
             <button
               onClick={() => setView('landing')}
               className="text-[#757681] hover:text-[#000d33] transition-colors"
@@ -355,39 +429,75 @@ export default function App() {
             <nav className="flex items-center gap-2 text-xs font-medium text-[#757681]">
               <span>Projects</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-              <span>Industrial_Module_01</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
               <span className="text-[#002060] font-bold">{activeSession.title.slice(0, 30)}</span>
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[10px] font-industrial text-[#757681] tracking-widest hidden md:block">
-              {isFlowchart ? 'LOGIC DESIGNER' : 'MODEL: ISA-X1 PRECISION'}
-            </span>
-            <button className="bg-[#000d33] text-white px-5 py-2 font-industrial text-sm tracking-widest hover:bg-[#0050C0] transition-colors">
-              {isFlowchart ? 'COMPILE SCL' : 'EXECUTE CODE'}
+            <div className="flex flex-col items-end">
+              <span className={`text-[12px] font-bold tracking-tighter ${uiMode === 'tui' ? 'text-[#7a9eb5]' : 'text-[#002060]'}`}>
+                CONTROLSAI
+              </span>
+              <span className={`text-[8px] font-industrial tracking-[0.2em] opacity-60 ${uiMode === 'tui' ? 'text-[#7a756e]' : 'text-[#757681]'}`}>
+                V1.0
+              </span>
+            </div>
+            
+            <button 
+              onClick={toggleUiMode}
+              className={`px-3 py-1 text-[10px] font-bold uppercase border transition-all ${
+                uiMode === 'tui' 
+                  ? 'border-[#6a9e7f] text-[#6a9e7f] hover:bg-[#6a9e7f] hover:text-[#1c1917]' 
+                  : 'border-[#0050C0] text-[#0050C0] hover:bg-[#0050C0] hover:text-white'
+              }`}
+            >
+              {uiMode === 'tui' ? '[ CLASSIC_VIEW ]' : 'Terminal View'}
             </button>
           </div>
         </header>
 
-        {/* Chat */}
-        <ChatArea
-          session={activeSession}
-          loading={loading}
-          onImageClick={setModalImg}
-          onPdfClick={handlePdfClick}
-        />
+        <div className={`flex-1 flex min-h-0 w-full overflow-hidden ${uiMode === 'tui' ? 'gap-0 p-8 pt-4' : ''}`}>
+          <div 
+            className="flex-1 min-w-0 flex flex-col relative h-full" 
+            style={uiMode === 'tui' ? { flex: `1 1 0%` } : {}}
+          >
+            {/* Chat */}
+            <ChatArea
+              session={activeSession}
+              loading={loading}
+              uiMode={uiMode}
+              onImageClick={setModalImg}
+              onPdfClick={handlePdfClick}
+            />
 
-        {/* Input */}
-        <InputBar
-          input={input}
-          loading={loading}
-          mode={activeSession.mode}
-          saveState={saveState}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onSubmit={handleSubmit}
-        />
+            {/* Input */}
+            <InputBar
+              input={input}
+              loading={loading}
+              mode={activeSession.mode}
+              uiMode={uiMode}
+              saveState={saveState}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onSubmit={handleSubmit}
+            />
+          </div>
+
+          {uiMode === 'tui' && (
+            <>
+              {/* Resize Handle */}
+              <div
+                onMouseDown={handleMouseDown}
+                className={`w-1 cursor-col-resize hover:bg-[--active] transition-colors h-full shrink-0 z-50 ${isResizing ? 'bg-[--active]' : 'bg-[--border]'}`}
+              />
+              <div 
+                className="flex flex-col shrink-0 h-full border-l border-[--border] min-w-0" 
+                style={{ flex: `0 0 ${workbenchWidth}%` }}
+              >
+                <LogicWorkbench messages={activeSession.messages} />
+              </div>
+            </>
+          )}
+        </div>
       </main>
     </div>
   );

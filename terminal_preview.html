@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlsAI Industrial terminal - Warm Theme</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+    
+    :root {
+      --bg-main: #1c1917;
+      --bg-panel: #252220;
+      --border: #2e2b28;
+      --text-primary: #d4cfc8;
+      --text-muted: #7a756e;
+      --text-dim: #4a4640;
+      --success: #6a9e7f; /* sage green */
+      --active: #7a9eb5;  /* dusty blue */
+      --highlight: #c4a96b; /* warm amber */
+      --danger: #b87070;   /* muted rose */
+      --warning: #b0896a;  /* terracotta */
+      --misc: #9189aa;     /* soft lavender */
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+    }
+    
+    .panel {
+      background-color: var(--bg-panel);
+      border: 1px solid var(--border);
+    }
+
+    /* Custom TUI scrollbars */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    .progress-bar-bg { background-color: var(--bg-main); border: 1px solid var(--border); }
+    .progress-bar-fill { background-color: var(--highlight); }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col p-6 gap-6 text-[13px] leading-tight">
+
+  <!-- 1. Top Header -->
+  <header class="panel p-4 relative shrink-0 shadow-sm">
+    <div class="absolute -top-3 left-6 bg-[#1c1917] px-2 text-[--text-muted] font-bold tracking-tight uppercase text-[11px]">
+       System Terminal v1.0.4 // Industrial Logic Analyzer
+    </div>
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-2">
+        <span class="text-[--text-muted]">STATUS:</span>
+        <span class="text-[--success] font-bold">RUNNING</span>
+      </div>
+      <div class="h-4 w-[1px] bg-[--border]"></div>
+      <div class="flex items-center gap-2">
+        <span class="text-[--text-muted]">SESSIONS:</span>
+        <span class="text-[--text-primary]">004</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[--text-muted]">CLEAN:</span>
+        <span class="text-[--success]">150</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[--text-muted]">ERRORS:</span>
+        <span class="text-[--danger]">001</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[--text-muted]">FAULT:</span>
+        <span class="text-[--warning]">000</span>
+      </div>
+      <div class="ml-auto flex items-center gap-4 text-[--text-dim] text-[11px]">
+        <span>DIRECT IP: 192.168.1.104</span>
+        <span>LATENCY: 12ms</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main class="flex-1 flex gap-6 min-h-0">
+    
+    <!-- 2. Left Pane: Active Comms Terminal (40%) -->
+    <section class="w-[40%] flex flex-col panel relative shadow-inner">
+      <div class="absolute -top-3 left-6 bg-[#1c1917] px-2 text-[--active] font-bold tracking-tight uppercase text-[11px]">
+        Communication Log // Active Thread
+      </div>
+      
+      <!-- List simulation -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-3">
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between items-center text-[11px]">
+            <span class="text-[--text-dim]">[09:54:15] USER_REQ</span>
+            <span class="text-[--text-dim]">#1129</span>
+          </div>
+          <div class="text-[--text-primary] pl-2 border-l-2 border-[--border]">
+            "Draft a safety interlock logic for the hydraulic press E-stop circuit."
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <div class="flex justify-between items-center text-[11px]">
+            <span class="text-[--active]">[09:54:16] SYS_PROC</span>
+            <span class="text-[--text-dim]">#1130</span>
+          </div>
+          <div class="flex items-center gap-3 pl-2">
+            <span class="text-[--text-muted]">Parsing Siemens S7-1200 Standards...</span>
+          </div>
+          <div class="flex items-center gap-3 pl-2 mt-1">
+             <span class="text-[--text-dim] w-20">COMPILING:</span>
+             <div class="flex-1 h-3 progress-bar-bg rounded-none relative">
+                <div class="absolute inset-y-0 left-0 w-[65%] progress-bar-fill"></div>
+             </div>
+             <span class="text-[--success] font-bold w-10">65%</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1 pt-2">
+           <div class="text-[--success] pl-2">
+              > SUCCESS: Logic verified against IEC-61131-3 standards.
+           </div>
+           <div class="text-[--text-muted] pl-2">
+              > Logic block broadcasted to persistent output buffer.
+           </div>
+        </div>
+
+        <!-- Fake Terminal Input -->
+        <div class="mt-8 border-t border-[--border] pt-4">
+           <div class="flex items-center gap-2">
+              <span class="text-[--active] font-bold">ENGINEER@CONTROLS:~$</span>
+              <span class="text-[--text-primary] animate-pulse">|</span>
+           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Right Pane: Modules (60%) -->
+    <section class="w-[60%] flex flex-col gap-6 min-h-0">
+      
+      <!-- Top module: Code Workbench -->
+      <div class="flex-[2] flex flex-col panel relative">
+        <div class="absolute -top-3 left-6 bg-[#1c1917] px-2 text-[--danger] font-bold tracking-tight uppercase text-[11px]">
+          SCL Logic Workspace // Output Buffer
+        </div>
+        <div class="flex items-center justify-between p-3 border-b border-[--border] bg-white/5">
+           <span class="text-[--text-muted] text-[11px]">FILE: hydraulic_press_v2.scl</span>
+           <div class="flex gap-4">
+              <span class="text-[--active] cursor-pointer hover:underline">COPY</span>
+              <span class="text-[--success] cursor-pointer hover:underline">DOWNLOAD</span>
+           </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-5 text-[--text-primary] font-mono leading-relaxed bg-[--bg-main]/50">
+<pre><code><span class="text-[--success]">FUNCTION_BLOCK</span> <span class="text-[--danger]">"PressSafety"</span>
+<span class="text-[--active]">VAR_INPUT</span>
+    ESTOP : <span class="text-[--warning]">BOOL</span>; <span class="text-[--text-dim]">// Emergency Stop NC</span>
+    Reset : <span class="text-[--warning]">BOOL</span>; <span class="text-[--text-dim]">// Safety Reset NO</span>
+<span class="text-[--active]">END_VAR</span>
+<span class="text-[--active]">VAR_OUTPUT</span>
+    Safety_Relay : <span class="text-[--warning]">BOOL</span>;
+<span class="text-[--active]">END_VAR</span>
+
+<span class="text-[--text-dim]">// Logic starts here</span>
+<span class="text-[--active]">IF</span> <span class="text-[--active]">NOT</span> ESTOP <span class="text-[--active]">THEN</span>
+    Safety_Relay := <span class="text-[--misc]">FALSE</span>;
+<span class="text-[--active]">ELSIF</span> Reset <span class="text-[--active]">THEN</span>
+    Safety_Relay := <span class="text-[--misc]">TRUE</span>;
+<span class="text-[--active]">END_IF</span>;</code></pre>
+        </div>
+      </div>
+
+      <!-- Bottom module: Events -->
+      <div class="flex-1 flex flex-col panel relative">
+        <div class="absolute -top-3 left-6 bg-[#1c1917] px-2 text-[--success] font-bold tracking-tight uppercase text-[11px]">
+          System Verification Events
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-1 text-[11px]">
+          <div class="flex gap-3">
+            <span class="text-[--success]">[✓]</span>
+            <span class="text-[--text-muted]">RAG:</span>
+            <span class="text-[--text-primary]">Retrieved 4 nodes from 'S7-1200_Manual.pdf' (0.8s)</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-[--success]">[✓]</span>
+            <span class="text-[--text-muted]">SYNTAX:</span>
+            <span class="text-[--text-primary]">No errors found in generated SCL block.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-[--warning]">[!]</span>
+            <span class="text-[--text-muted]">DOCS:</span>
+            <span class="text-[--text-primary]">Standard IEC 61131-3 syntax enforcement active.</span>
+          </div>
+          <div class="flex gap-3">
+            <span class="text-[--success]">[✓]</span>
+            <span class="text-[--text-muted]">CACHE:</span>
+            <span class="text-[--text-primary]">Session state persisted to local cluster.</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ControlsAI // Workspace Terminal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+    :root {
+      --bg-main: #1c1917; --bg-panel: #252220; --border: #2e2b28;
+      --text-primary: #d4cfc8; --text-muted: #7a756e; --text-dim: #4a4640;
+      --success: #6a9e7f; --active: #7a9eb5; --highlight: #c4a96b;
+      --danger: #b87070; --warning: #b0896a;
+    }
+    body { font-family: 'JetBrains Mono', monospace; background-color: var(--bg-main); color: var(--text-primary); }
+    .panel { border: 1px solid var(--border); background-color: var(--bg-panel); }
+    .btn-tui { border: 1px solid var(--border); padding: 4px 12px; transition: all 0.2s; cursor: pointer; text-transform: uppercase; font-size: 10px; font-bold: true; }
+    .btn-tui:hover { background-color: var(--border); color: var(--highlight); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex text-[12px]">
+
+  <!-- TUI SIDEBAR (Left) -->
+  <aside class="w-64 border-r border-[--border] flex flex-col shrink-0 bg-[#141210]">
+    <div class="p-4 border-b border-[--border] text-[--text-muted] font-bold uppercase tracking-widest text-[10px]">
+      SESSION_INDEX
+    </div>
+    <div class="flex-1 overflow-y-auto p-2 space-y-1">
+      <div class="p-2 border border-[--active] text-[--active] bg-[--active]/5 flex justify-between items-center group">
+        <span>> NEW_CHAT_DEBOUNCE</span>
+        <span class="text-[--text-dim] text-[9px]">[ACTIVE]</span>
+      </div>
+      <div class="p-2 border border-transparent hover:border-[--border] text-[--text-muted] flex justify-between group cursor-pointer">
+        <span>  TANK_DRAIN_LOGIC</span>
+        <span class="opacity-0 group-hover:opacity-100 text-[--danger]">[X]</span>
+      </div>
+      <div class="p-2 border border-transparent hover:border-[--border] text-[--text-muted] flex justify-between group cursor-pointer">
+        <span>  SAFETY_E_STOP_V2</span>
+        <span class="opacity-0 group-hover:opacity-100 text-[--danger]">[X]</span>
+      </div>
+      <div class="p-2 border border-transparent hover:border-[--border] text-[--text-muted] flex justify-between group cursor-pointer text-[--text-dim]">
+        <span>  + CREATE_NEW_SESSION</span>
+      </div>
+    </div>
+    <div class="p-4 border-t border-[--border] flex flex-col gap-2">
+      <div class="flex items-center gap-2 text-[10px] text-[--text-muted]">
+        <div class="w-2 h-2 bg-[--success] rounded-full"></div>
+        <span>ENGINEER_01: ONLINE</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN WORKSPACE (Right) -->
+  <div class="flex-1 flex flex-col p-4 gap-4 min-w-0">
+    
+    <!-- Top Bar -->
+    <header class="panel flex justify-between items-center px-4 py-2 shrink-0">
+      <div class="flex items-center gap-6">
+        <span class="text-[--active] font-bold uppercase tracking-widest">CONTROLSAI // ASSISTANT_NODE_01</span>
+      </div>
+      <div class="flex gap-4 items-center">
+        <div class="btn-tui border-[--success] text-[--success] hover:bg-[--success] hover:text-[--bg-main]">
+          [ SWITCH_TO_NORMAL ]
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1 flex gap-4 min-h-0">
+      <!-- Left: Chat Terminal (40%) -->
+      <section class="w-[40%] flex flex-col panel relative">
+        <div class="absolute -top-2 left-4 bg-[#1c1917] px-2 text-[--active] font-bold text-[10px] uppercase">COMMS_LOG</div>
+        
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
+          <div class="flex flex-col gap-1">
+            <div class="text-[--text-dim] text-[10px] uppercase">[09:54:10] ENGINEER@LOCAL</div>
+            <div class="text-[--text-primary] pl-2 border-l-2 border-[--border]">
+              Draft a SCL block for a hydraulic press safety interlock.
+            </div>
+          </div>
+          
+          <!-- Loading/Thinking state -->
+          <div class="flex flex-col gap-1">
+             <div class="text-[--active] text-[10px] uppercase">[09:54:12] CONTROLS_AI</div>
+             <div class="flex items-center gap-3 pl-2 mt-1">
+                <span class="text-[--highlight] uppercase text-[10px]">THINKING_DL</span>
+                <div class="flex-1 h-3 bg-black/40 border border-[--border] rounded-none relative">
+                   <div class="absolute inset-y-0 left-0 w-[65%] bg-[--highlight]"></div>
+                </div>
+                <span class="text-[--success] font-bold w-10 text-[10px]">65%</span>
+             </div>
+             <div class="text-[--text-dim] text-[10px] pl-2 mt-1 animate-pulse">
+                > SYNCING_RAG_DATA_NODES...
+             </div>
+          </div>
+        </div>
+
+        <!-- Terminal-prompt Command Input -->
+        <div class="p-4 border-t border-[--border] bg-black/20">
+          <div class="flex items-center gap-2">
+            <span class="text-[--active] font-bold">ENGINEER@CONTROLS:~$</span>
+            <input type="text" placeholder="..." class="flex-1 bg-transparent border-none text-[--text-primary] focus:outline-none placeholder-[--text-dim]">
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Logic Workbench (60%) -->
+      <section class="w-[60%] flex flex-col gap-4">
+        <div class="flex-1 flex flex-col panel relative">
+          <div class="absolute -top-2 left-4 bg-[#1c1917] px-2 text-[--danger] font-bold text-[10px] uppercase">LOGIC_WORKBENCH</div>
+          <div class="flex justify-between items-center px-4 py-2 border-b border-[--border] bg-white/5">
+            <span class="text-[--text-muted] text-[10px]">FILE: safety_interlock.scl</span>
+            <div class="flex gap-4 text-[10px]">
+              <span class="text-[--active] cursor-pointer hover:underline">[COPY]</span>
+              <span class="text-[--success] cursor-pointer hover:underline">[DL_BLOCK]</span>
+            </div>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 text-[--text-primary] leading-relaxed bg-[--bg-main]/40">
+<pre><code><span class="text-[--success]">FUNCTION_BLOCK</span> <span class="text-[--danger]">"PressSafety"</span>
+<span class="text-[--active]">VAR_INPUT</span>
+    ESTOP : <span class="text-[--warning]">BOOL</span>;
+    Reset : <span class="text-[--warning]">BOOL</span>;
+<span class="text-[--active]">END_VAR</span>
+<span class="text-[--active]">VAR_OUTPUT</span>
+    Safety_Relay : <span class="text-[--warning]">BOOL</span>;
+<span class="text-[--active]">END_VAR</span>
+
+<span class="text-[--active]">IF</span> <span class="text-[--active]">NOT</span> ESTOP <span class="text-[--active]">THEN</span>
+    Safety_Relay := <span class="text-[--misc]">FALSE</span>;
+<span class="text-[--active]">ELSIF</span> Reset <span class="text-[--active]">THEN</span>
+    Safety_Relay := <span class="text-[--misc]">TRUE</span>;
+<span class="text-[--active]">END_IF</span>;</code></pre>
+          </div>
+        </div>
+
+        <!-- Events -->
+        <div class="h-[100px] panel relative">
+          <div class="absolute -top-2 left-4 bg-[#1c1917] px-2 text-[--success] font-bold text-[10px] uppercase">EVENT_LOG</div>
+          <div class="p-3 space-y-1 overflow-y-auto text-[10px]">
+            <div class="flex gap-2"><span class="text-[--success]">[✓]</span> [SIM_CHECK] S7-1200 Optimized</div>
+            <div class="flex gap-2"><span class="text-[--active]">[+]</span> [LOGIC] Safety block verified</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

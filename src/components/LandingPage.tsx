@@ -3,8 +3,10 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Bell, History, ChevronRight, MessageSquare,
-  GitBranch, Cpu, Shield, BookOpen, Server, CheckCircle,
+  Plus, MessageSquare, GitBranch, HardHat, Clock,
+  Trash2, Pencil, PanelLeftClose, PanelLeftOpen,
+  Search, Settings2, Tag, ChevronDown, ChevronUp, ChevronRight,
+  Bell, History, Cpu, Shield, BookOpen, Server, CheckCircle,
   ArrowRight, Zap, Lock, BarChart3, ArrowLeft, ExternalLink
 } from 'lucide-react';
 
@@ -17,6 +19,8 @@ interface LandingPageProps {
   onLogin: () => void;
   onPrivacy: () => void;
   onTerms: () => void;
+  uiMode: 'normal' | 'tui';
+  onToggleMode: () => void;
 }
 
 // ── Animation Variants ────────────────────────────────────────────────────────
@@ -24,9 +28,9 @@ const fadeUp = {
   hidden:  { opacity: 0, y: 30 },
   visible: (delay = 0) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] },
-  }),
-};
+    transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as any },
+  }) as any,
+} as any;
 
 const fadeIn = {
   hidden:  { opacity: 0 },
@@ -38,8 +42,8 @@ const fadeIn = {
 
 const slideRight = {
   hidden:  { opacity: 0, x: 60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.3 } },
-};
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as any, delay: 0.3 } } as any,
+} as any;
 
 const staggerContainer = {
   hidden:  {},
@@ -48,8 +52,8 @@ const staggerContainer = {
 
 const cardVariant = {
   hidden:  { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-};
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as any } } as any,
+} as any;
 
 // ── Code lines data ───────────────────────────────────────────────────────────
 const codeLines = [
@@ -81,7 +85,215 @@ const badges = ['TIA_V19_READY', 'STUDIO_5000_L8', 'TWINCAT_3.1', 'CODESYS_V3'];
 const checks = ['Memory Management Optimization', 'Cycle Time Calculation', 'Structured Text Linting'];
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, onStartFlowchart, onLogin, onPrivacy, onTerms }: LandingPageProps) {
+export default function LandingPage({ 
+  user, isLoggedIn, onLogout, onStartChat, onStartFlowchart, 
+  onLogin, onPrivacy, onTerms, uiMode, onToggleMode 
+}: LandingPageProps) {
+  if (uiMode === 'tui') {
+    return (
+      <div className="min-h-screen bg-[#1c1917] text-[#d4cfc8] p-8 flex flex-col gap-12 overflow-x-hidden font-mono selection:bg-[#c4a96b] selection:text-[#1c1917]">
+        {/* Header */}
+        <motion.header 
+          initial="hidden" animate="visible" variants={fadeIn}
+          className="flex justify-between items-center shrink-0"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <div className="text-[#7a9eb5] font-bold text-xl tracking-tighter uppercase leading-none">CONTROLSAI</div>
+              <div className="text-[#7a756e] text-[9px] uppercase tracking-[0.3em] font-medium mt-1">V1.0</div>
+            </div>
+          </div>
+          <div className="flex gap-4 items-center">
+            <button 
+              onClick={onToggleMode} 
+              className="border border-[#6a9e7f] text-[#6a9e7f] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#6a9e7f] hover:text-[#1c1917] transition-all"
+            >
+              [ CLASSIC_VIEW ]
+            </button>
+            {isLoggedIn ? (
+              <>
+                <button onClick={onStartChat} className="border border-[#7a9eb5] text-[#7a9eb5] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#7a9eb5] hover:text-[#1c1917] transition-all">
+                  [ RETURN_TO_TERMINAL ]
+                </button>
+                <button onClick={onLogout} className="border border-[#2e2b28] text-[#d4cfc8] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#2e2b28] transition-all">
+                  [ SIGN_OUT ]
+                </button>
+                {user && (
+                   <div 
+                     className="w-8 h-8 rounded-sm border border-[#c4a96b] flex items-center justify-center text-[#c4a96b] text-[10px] font-bold hover:bg-[#c4a96b]/10 transition-colors shrink-0"
+                   >
+                     {user.name.charAt(0).toUpperCase()}
+                   </div>
+                )}
+              </>
+            ) : (
+              <>
+                <button onClick={onLogin} className="border border-[#2e2b28] text-[#d4cfc8] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#2e2b28] transition-all">
+                  [ SIGN_IN ]
+                </button>
+                <button onClick={onStartChat} className="border border-[#7a9eb5] text-[#7a9eb5] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#7a9eb5] hover:text-[#1c1917] transition-all">
+                  [ REQUEST_ACCESS ]
+                </button>
+              </>
+            )}
+          </div>
+        </motion.header>
+
+        {/* Hero */}
+        <motion.section 
+          initial="hidden" animate="visible" variants={staggerContainer}
+          className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pt-24 pb-20"
+        >
+          <div className="flex flex-col gap-8">
+            <motion.div variants={fadeUp} className="flex items-center gap-3">
+              <span className="text-[#c4a96b] text-[10px] font-bold border border-[#c4a96b] px-2 py-0.5 uppercase tracking-widest">SYSTEM_STATUS: OK_ONLINE</span>
+            </motion.div>
+            <motion.h1 variants={fadeUp} className="text-6xl md:text-7xl font-bold leading-none tracking-tighter">THE PLC<br/><span className="text-[#7a9eb5]">ENGINEER'S</span><br/>SECOND BRAIN.</motion.h1>
+            <motion.p variants={fadeUp} className="text-[#7a756e] text-lg leading-relaxed max-w-lg">Bridge the gap between conceptual flowcharts and production logic. An AI architect designed for industrial precision.</motion.p>
+            <motion.div variants={fadeUp} className="flex flex-col md:flex-row gap-4 pt-4">
+              <button onClick={onStartChat} className="border border-[#7a9eb5] text-[#7a9eb5] text-lg px-8 py-4 uppercase font-bold hover:bg-[#7a9eb5] hover:text-[#1c1917] transition-all flex items-center justify-center gap-3 active:scale-95">
+                <ChevronRight size={20} /> START_Q&A_SESSION
+              </button>
+              <button onClick={onStartFlowchart} className="border border-[#2e2b28] text-[#d4cfc8] text-lg px-8 py-4 uppercase font-bold hover:bg-[#2e2b28] transition-all flex items-center justify-center gap-3 active:scale-95">
+                <ChevronRight size={20} /> DESIGN_LOGIC_BLOCK
+              </button>
+            </motion.div>
+          </div>
+          <motion.div 
+            variants={slideRight}
+            className="border border-[#2e2b28] bg-[#252220] p-6 relative flex flex-col min-h-[300px] shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+          >
+            <div className="absolute -top-3 left-6 bg-[#1c1917] px-2 text-[#b87070] font-bold text-[10px] uppercase tracking-widest">Active_Compilation_Window</div>
+            <div className="text-[12px] leading-relaxed text-[#7a756e] overflow-hidden">
+              <pre>
+                {codeLines.map((line, i) => (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.8 + i * 0.05 }}
+                    key={line.n}
+                  >
+                    <span className="text-[#4a4640] mr-4">{line.n}</span>
+                    <span style={{color: line.highlight ? '#c4a96b' : '#7a756e'}}>{line.text}</span>
+                  </motion.div>
+                ))}
+              </pre>
+            </div>
+            <div className="mt-auto border-t border-[#2e2b28] pt-4 flex justify-between items-center text-[10px]">
+              <span className="text-[#7a9eb5]">COMPILATION COMPLETE</span>
+              <span className="text-[#4a4640]">LOC: 13 // CHECKSUM: 0x8A4B</span>
+            </div>
+          </motion.div>
+        </motion.section>
+
+        {/* Features */}
+        <motion.section 
+          initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-100px' }}
+          variants={staggerContainer}
+          className="max-w-6xl mx-auto w-full flex flex-col gap-8 pt-20"
+        >
+          <div className="flex items-center gap-4">
+            <motion.h2 variants={fadeUp} className="text-3xl font-bold tracking-tight uppercase">ENGINEERED_SYSTEMS_CORE</motion.h2>
+            <div className="h-[1px] flex-1 bg-[#2e2b28]"></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => (
+              <motion.div 
+                key={f.title} 
+                variants={cardVariant}
+                whileHover={{ borderColor: '#7a9eb5', y: -5 }}
+                className="border border-[#2e2b28] bg-[#252220] p-8 flex flex-col gap-4 transition-all"
+              >
+                <div className="text-[#7a9eb5] flex justify-between uppercase font-bold text-[11px]">
+                  <span>{f.title}</span>
+                  <span className="text-[#4a4640]">[{String(i+1).padStart(2,'0')}]</span>
+                </div>
+                <p className="text-[#7a756e] text-sm leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Built by Engineers (Industrial Variant) */}
+        <section className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-20 items-center pt-32">
+          <motion.div 
+            initial={{ opacity: 0, x: -40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="border border-[#2e2b28] bg-[#0d1117] p-8 font-mono text-xs text-[#7a9eb5] leading-relaxed space-y-1 shadow-2xl"
+          >
+            <div className="text-[#c4a96b]">FUNCTION_BLOCK "FB_Synthesis_Core"</div>
+            <div>{'  '}i_Command_Vector : Array[0..1024] of Byte;</div>
+            <div className="text-[#c4a96b]">REGION Logic_Verification</div>
+            <div className="text-[#4a4640]">{'  '}// Status: Integrity Check in Progress...</div>
+            <div>[ OK ] System Boundary Validation</div>
+            <div>[ OK ] Memory Offset Calculation</div>
+            <div>[ !! ] Pending SCL Synthesis</div>
+            <div className="text-[#c4a96b]">END_REGION</div>
+          </motion.div>
+          <motion.div 
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="flex flex-col gap-6"
+          >
+            <h2 className="text-4xl font-bold uppercase tracking-tighter leading-none">BUILT_FOR_PRECISION<br/><span className="text-[#7a9eb5]">DOMAIN_SPECIFIC_CORE</span></h2>
+            <p className="text-[#7a756e] leading-relaxed">The high stakes of industrial automation demand deterministic output. CONTROLSAI respects the physical constraints of industrial hardware, ensuring your PLC logic is safe, structured, and production-ready.</p>
+            <ul className="grid grid-cols-1 gap-4">
+              {checks.map((c, i) => (
+                <motion.li 
+                  key={c} 
+                  initial={{ opacity: 0, x: 20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3 + i * 0.1 }}
+                  className="flex items-center gap-3 text-[11px] font-bold uppercase tracking-wider text-[#d4cfc8]"
+                >
+                  <div className="w-1.5 h-1.5 bg-[#6a9e7f] rounded-full"></div>
+                  {c}
+                </motion.li>
+              ))}
+            </ul>
+          </motion.div>
+        </section>
+
+        {/* CTA Banner (Industrial Variant) */}
+        <motion.section 
+          initial="hidden" whileInView="visible" viewport={{ once: true }}
+          variants={staggerContainer}
+          className="max-w-4xl mx-auto w-full text-center pt-32 pb-20"
+        >
+          <motion.h2 variants={fadeUp} className="text-5xl font-bold uppercase tracking-tighter mb-6">READY_FOR_SYNTHESIS?</motion.h2>
+          <motion.p variants={fadeUp} className="text-[#7a756e] mb-10">Access the CONTROLSAI core system and architect industrial logic with machine precision.</motion.p>
+          <motion.div variants={fadeUp} className="flex flex-col md:flex-row justify-center gap-4">
+            <input 
+              className="bg-[#252220] border border-[#2e2b28] px-6 py-4 w-full md:w-96 text-[#d4cfc8] font-mono text-xs focus:outline-none focus:border-[#7a9eb5] transition-all"
+              placeholder="ENTER_CORPORATE_CREDENTIALS..."
+            />
+            <button 
+              onClick={onStartChat}
+              className="bg-[#7a9eb5] text-[#1c1917] px-10 py-4 font-bold uppercase tracking-widest hover:bg-[#d4cfc8] transition-all active:scale-95"
+            >
+              [ REQUEST_ACCESS ]
+            </button>
+          </motion.div>
+        </motion.section>
+
+        {/* Footer */}
+        <footer className="mt-auto pt-12 border-t border-[#2e2b28] flex justify-between items-center text-[10px] text-[#4a4640] uppercase tracking-widest">
+          <div>@2026_KURO // INDUSTRIAL_LOGIC_SYNTHESIS</div>
+          <div className="flex gap-8">
+            <button onClick={onTerms} className="hover:text-[#d4cfc8]">TERMS_OF_SERVICE</button>
+            <button onClick={onPrivacy} className="hover:text-[#d4cfc8]">PRIVACY_POLICY</button>
+          </div>
+          <div className="text-[#7a756e]">AWAITING_COMMAND<span className="animate-pulse ml-2 text-white">_</span></div>
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#001540] text-white min-h-screen overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
 
@@ -104,35 +316,33 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
       >
         <nav className="flex justify-between items-center w-full px-6 py-3">
           <div className="flex items-center gap-8">
-            <motion.span
-              variants={fadeUp}
-              custom={0.1}
-              className="text-xl font-bold text-white tracking-widest uppercase font-industrial"
-            >
-              CONTROLSAI
-            </motion.span>
+            <div className="flex flex-col">
+              <motion.span
+                variants={fadeUp}
+                custom={0.1}
+                className="text-xl font-bold text-white tracking-widest uppercase font-industrial leading-none"
+              >
+                CONTROLSAI
+              </motion.span>
+              <motion.span
+                variants={fadeUp}
+                custom={0.2}
+                className="text-[9px] text-[#C8D8F0]/60 tracking-[0.3em] font-industrial mt-1"
+              >
+                V1.0
+              </motion.span>
+            </div>
           </div>
           <div className="flex items-center gap-4">
+            <motion.button
+              whileHover={{ scale: 1.03, backgroundColor: 'rgba(122, 158, 181, 0.1)' }}
+              onClick={onToggleMode}
+              className="border border-[#7a9eb5]/30 text-[#7a9eb5] px-4 py-1.5 text-xs font-industrial uppercase tracking-wider transition-all hover:bg-[#7a9eb5]/5"
+            >
+              Terminal View
+            </motion.button>
             {isLoggedIn ? (
               <>
-                {user && (
-                  <div 
-                    className="w-8 h-8 rounded-full bg-[#0050C0] flex items-center justify-center text-white text-xs border border-white/20 hover:border-white/50 shrink-0 font-bold cursor-help group relative mr-2 transition-colors"
-                  >
-                    {user.name.charAt(0).toUpperCase()}
-                    <div className="absolute top-10 right-0 bg-[#001540] border border-[#0050C0] p-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 text-left rounded-sm">
-                       <p className="text-white text-xs font-bold font-industrial uppercase tracking-widest">{user.email}</p>
-                       <p className="text-[#999999] text-[10px] mt-1.5 uppercase font-medium">Last Auth: {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Just now'}</p>
-                    </div>
-                  </div>
-                )}
-                <motion.button
-                  whileHover={{ scale: 1.03, backgroundColor: 'rgba(255,255,255,0.1)' }}
-                  onClick={onLogout}
-                  className="border border-white/20 text-white px-4 py-1.5 text-xs font-industrial uppercase tracking-wider transition-all hover:bg-white/5"
-                >
-                  Sign Out
-                </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.03, backgroundColor: '#003080' }}
                   whileTap={{ scale: 0.97 }}
@@ -141,6 +351,24 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
                 >
                   Return to Terminal
                 </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.03, backgroundColor: 'rgba(255,255,255,0.1)' }}
+                  onClick={onLogout}
+                  className="border border-white/20 text-white px-4 py-1.5 text-xs font-industrial uppercase tracking-wider transition-all hover:bg-white/5"
+                >
+                  Sign Out
+                </motion.button>
+                {user && (
+                  <div 
+                    className="w-8 h-8 rounded-full bg-[#0050C0] flex items-center justify-center text-white text-xs border border-white/20 hover:border-white/50 shrink-0 font-bold cursor-help group relative transition-colors"
+                  >
+                    {user.name.charAt(0).toUpperCase()}
+                    <div className="absolute top-10 right-0 bg-[#001540] border border-[#0050C0] p-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 text-left rounded-sm">
+                       <p className="text-white text-xs font-bold font-industrial uppercase tracking-widest">{user.email}</p>
+                       <p className="text-[#999999] text-[10px] mt-1.5 uppercase font-medium">Last Auth: {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'Just now'}</p>
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
               <>
@@ -158,7 +386,7 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
                   onClick={onStartChat}
                   className="bg-[#0050C0] text-white px-4 py-1.5 text-xs font-industrial uppercase tracking-wider transition-colors"
                 >
-                  Launch Terminal
+                   Request Access
                 </motion.button>
               </>
             )}
@@ -324,8 +552,6 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
             </motion.div>
           ))}
 
-          {/* Removed Zero Cloud Exposure wide card */}
-
           {/* Flowchart card */}
           <motion.div
             variants={cardVariant}
@@ -351,7 +577,7 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as any }}
             className="relative order-2 lg:order-1"
           >
             <div className="shadow-2xl overflow-hidden border border-[#002060]/20 bg-white">
@@ -378,7 +604,7 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as any, delay: 0.15 }}
             className="order-1 lg:order-2"
           >
             <h2 className="font-industrial text-5xl md:text-6xl uppercase tracking-tighter mb-8 leading-none">
@@ -446,14 +672,14 @@ export default function LandingPage({ user, isLoggedIn, onLogout, onStartChat, o
             placeholder="Enter corporate email..."
             type="email"
           />
-          <motion.button
-            onClick={onStartChat}
-            whileHover={{ scale: 1.03, backgroundColor: '#003080' }}
-            whileTap={{ scale: 0.97 }}
-            className="bg-[#0050C0] text-white px-8 py-4 font-industrial uppercase tracking-widest text-lg transition-all"
-          >
-            {isLoggedIn ? 'Enter Terminal' : 'Request Access'}
-          </motion.button>
+            <motion.button
+              onClick={onStartChat}
+              whileHover={{ scale: 1.03, backgroundColor: '#003080' }}
+              whileTap={{ scale: 0.97 }}
+              className="bg-[#0050C0] text-white px-8 py-4 font-industrial uppercase tracking-widest text-lg transition-all"
+            >
+              {isLoggedIn ? 'Return to Terminal' : 'Request Access'}
+            </motion.button>
         </motion.div>
       </section>
 

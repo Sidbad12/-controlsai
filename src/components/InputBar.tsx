@@ -11,9 +11,10 @@ interface InputBarProps {
   onChange : (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSubmit : () => void;
+  uiMode?  : 'normal' | 'tui';
 }
 
-export default function InputBar({ input, loading, mode, saveState, onChange, onKeyDown, onSubmit }: InputBarProps) {
+export default function InputBar({ input, loading, mode, saveState, onChange, onKeyDown, onSubmit, uiMode = 'normal' }: InputBarProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -28,51 +29,58 @@ export default function InputBar({ input, loading, mode, saveState, onChange, on
     : 'Ask about S7-1200 programming, errors, or logic…  →  Ctrl+Enter to send';
 
   return (
-    <footer className="border-t border-[#C8D8F0]/20 bg-[#fcf9f8] px-6 py-4">
+    <footer className={`border-t px-6 py-4 transition-colors duration-300 ${
+      uiMode === 'tui' ? 'bg-[#1c1917] border-[#2e2b28]' : 'bg-[#fcf9f8] border-[#C8D8F0]/20'
+    }`}>
       <div className="max-w-4xl mx-auto">
 
         {/* Textarea container */}
-        <div className="relative bg-[#eae7e7] border-none focus-within:ring-2 focus-within:ring-[#0050C0]/40 transition-shadow">
+        <div className={`relative transition-all duration-300 ${
+          uiMode === 'tui' 
+            ? 'bg-[#252220] border border-[#2e2b28]' 
+            : 'bg-[#eae7e7] border-none focus-within:ring-2 focus-within:ring-[#0050C0]/40'
+        }`}>
+          {uiMode === 'tui' && (
+            <div className="absolute top-4 left-4 text-[--active] font-mono text-sm pointer-events-none">
+              ENGINEER@CONTROLS:~$
+            </div>
+          )}
           <textarea
             ref={ref}
             value={input}
             onChange={onChange}
             onKeyDown={onKeyDown}
-            placeholder={placeholder}
+            placeholder={uiMode === 'tui' ? '' : placeholder}
             disabled={loading}
             rows={3}
-            className="w-full bg-transparent px-5 py-4 pr-28 text-sm text-[#1b1c1c] placeholder-[#757681] resize-none focus:outline-none disabled:opacity-60 leading-relaxed"
+            className={`w-full bg-transparent px-5 py-4 pr-28 text-sm focus:outline-none disabled:opacity-60 leading-relaxed resize-none ${
+              uiMode === 'tui' 
+                ? 'font-mono text-[--text-primary] pl-[180px] selection:bg-[--active]/30' 
+                : 'text-[#1b1c1c] placeholder-[#757681]'
+            }`}
             style={{ minHeight: '80px', maxHeight: '200px' }}
           />
 
           {/* Action buttons */}
           <div className="absolute bottom-3 right-3 flex items-center gap-2">
-            {/* Upload — disabled, coming soon */}
-            <div className="relative group">
-              <button
-                disabled
-                className="p-2 text-[#c5c6d2] cursor-not-allowed"
-                title="File upload — coming in v1.2"
-              >
-                <Upload size={18} />
-              </button>
-              <div className="absolute bottom-full right-0 mb-1.5 whitespace-nowrap bg-[#001540] text-white text-[10px] px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-industrial uppercase tracking-wider">
-                Coming in v1.2
-              </div>
-            </div>
-
-            {/* Send */}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={onSubmit}
               disabled={loading || !input.trim()}
-              className="bg-[#0050C0] text-white p-2.5 hover:bg-[#003080] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center"
+              className={`${
+                uiMode === 'tui'
+                  ? 'bg-transparent border border-[--active] text-[--active] px-3 py-1.5 text-[10px] uppercase font-bold hover:bg-[--active] hover:text-[#1c1917]'
+                  : 'bg-[#0050C0] text-white p-2.5 hover:bg-[#003080]'
+              } transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center`}
               title="Send (Ctrl+Enter)"
             >
-              {loading
-                ? <Loader2 size={18} className="animate-spin" />
-                : <Send size={18} />
-              }
+              {loading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : uiMode === 'tui' ? (
+                '[ RUN_COMMAND ]'
+              ) : (
+                <Send size={18} />
+              )}
             </motion.button>
           </div>
         </div>

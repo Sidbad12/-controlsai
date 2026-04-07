@@ -6,13 +6,77 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
 
 @layer base {
+  :root {
+    --bg-main: #fcf9f8;
+    --bg-panel: #ffffff;
+    --border: #C8D8F0;
+    --text-primary: #000d33;
+    --text-muted: #757681;
+    --text-dim: #9ca3af;
+    --success: #059669;
+    --active: #0050C0;
+    --highlight: #0050C0;
+    --danger: #dc2626;
+    --warning: #d97706;
+    --misc: #7c3aed;
+  }
+
+  [data-ui-mode="tui"] {
+    --bg-main: #1c1917;
+    --bg-panel: #252220;
+    --border: #2e2b28;
+    --text-primary: #d4cfc8;
+    --text-muted: #7a756e;
+    --text-dim: #4a4640;
+    --success: #6a9e7f;
+    --active: #7a9eb5;
+    --highlight: #c4a96b;
+    --danger: #b87070;
+    --warning: #b0896a;
+    --misc: #9189aa;
+    
+    /* TUI Custom Scrollbar */
+    *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    *::-webkit-scrollbar-track {
+      background: #1c1917;
+    }
+    *::-webkit-scrollbar-thumb {
+      background: #3a3632;
+      border-radius: 3px;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background: #4a4640;
+    }
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #3a3632 #1c1917;
+    }
+  }
+
   body {
     font-family: 'DM Sans', sans-serif;
-    background-color: #fcf9f8;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
+
+  [data-ui-mode="tui"] body, 
+  [data-ui-mode="tui"] button, 
+  [data-ui-mode="tui"] input, 
+  [data-ui-mode="tui"] textarea {
+    font-family: 'JetBrains Mono', monospace !important;
+  }
+
   .font-headline { font-family: 'Space Grotesk', sans-serif; }
   .font-industrial { font-family: 'Barlow Condensed', sans-serif; }
   .font-code { font-family: 'JetBrains Mono', monospace; }
