@@ -1,7 +1,7 @@
 // db.ts — Firebase Firestore Session Manager for CONTROLSAI
 // Replaces local IndexedDB with secure cloud storage.
 
-import { collection, doc, setDoc, getDoc, getDocs, deleteDoc, query, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs, deleteDoc, query, orderBy, writeBatch, where, limit } from 'firebase/firestore';
 import { dbFirestore } from './firebase';
 import type { Session } from './types';
 
@@ -11,15 +11,41 @@ export async function checkUserAccess(uid: string, email: string): Promise<{ app
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       const data = snap.data();
-      if (data.status === 'approved') return { approved: true };
+      if (data.status === 'approved' || data.status === 'accepted') return { approved: true };
+      
+      // If not approved, check if their email was approved in the access_requests waitlist
+      const q = query(collection(dbFirestore, 'access_requests'), where('email', '==', email), limit(1));
+      const reqSnap = await getDocs(q);
+      
+      if (!reqSnap.empty) {
+        const reqData = reqSnap.docs[0].data();
+        if (reqData.status === 'approved' || reqData.status === 'accepted') {
+          // Auto-promote them to approved in the users collection
+          await setDoc(docRef, { ...data, status: 'approved', approvedAt: Date.now() }, { merge: true });
+          return { approved: true };
+        }
+      }
+      
       return { approved: false };
     } else {
+      // New user logging in, check if they were pre-approved in the waitlist
+      const q = query(collection(dbFirestore, 'access_requests'), where('email', '==', email), limit(1));
+      const reqSnap = await getDocs(q);
+      let initialStatus = 'pending';
+
+      if (!reqSnap.empty) {
+        const reqData = reqSnap.docs[0].data();
+        if (reqData.status === 'approved' || reqData.status === 'accepted') {
+          initialStatus = 'approved';
+        }
+      }
+
       await setDoc(docRef, {
         email,
-        status: 'pending',
+        status: initialStatus,
         createdAt: Date.now()
       });
-      return { approved: false };
+      return { approved: initialStatus === 'approved' };
     }
   } catch (error) {
     console.error("Access check failed", error);

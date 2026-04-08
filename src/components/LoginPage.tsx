@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 import { 
   signInWithPopup, 
   signInWithEmailAndPassword, 
@@ -15,11 +15,12 @@ import { auth, googleProvider } from '../firebase';
 
 interface LoginPageProps {
   onLogin: (user: { name: string; email: string }) => void;
+  onBack: () => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
 
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage({ onLogin, onBack }: LoginPageProps) {
   const [mode, setMode]       = useState<AuthMode>('login');
   const [email, setEmail]     = useState('');
   const [password, setPass]   = useState('');
@@ -87,6 +88,17 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       {/* Glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#0050C0] opacity-5 blur-[120px] pointer-events-none" />
 
+      {/* Back Button */}
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={onBack}
+        className="fixed top-8 left-8 z-20 flex items-center gap-2 text-[#C8D8F0]/60 hover:text-white transition-colors group"
+      >
+        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+        <span className="text-[10px] uppercase tracking-widest font-bold">Back to Home</span>
+      </motion.button>
+
       {/* Panel */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
@@ -96,8 +108,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       >
         {/* Logo */}
         <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-widest text-white uppercase font-industrial mb-1">CONTROLSAI</h1>
-          <p className="text-[#999999] text-xs uppercase tracking-[0.25em]">Terminal 01-A · Precision Architect</p>
+          <h1 className="text-5xl font-bold tracking-widest text-white uppercase font-headline">
+            CONTROLS<span className="text-[#0050C0]">AI</span>
+          </h1>
         </div>
 
         {/* Card */}
@@ -111,7 +124,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ duration: 0.2 }}
-              className="text-xl font-headline font-bold text-white mb-6"
+              className="text-xl font-headline font-bold text-white mb-6 tracking-tight"
             >
               {titles[mode]}
             </motion.h2>
@@ -149,7 +162,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <form onSubmit={handleEmailAuth} className="space-y-4">
             {mode === 'register' && (
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-[#999999] mb-1.5">Full Name</label>
+                <label className="block text-[10px] font-subheadline font-bold uppercase tracking-widest text-[#999999] mb-1.5">Full Name</label>
                 <input
                   type="text" value={name} onChange={(e) => setName(e.target.value)}
                   placeholder="John Engineer"
@@ -159,7 +172,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             )}
 
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-[#999999] mb-1.5">Corporate Email</label>
+              <label className="block text-[10px] font-subheadline font-bold uppercase tracking-widest text-[#999999] mb-1.5">Corporate Email</label>
               <div className="relative">
                 <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555555]" />
                 <input
@@ -173,7 +186,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             {mode !== 'forgot' && (
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-[#999999] mb-1.5">Access Key (Password)</label>
+                <label className="block text-[10px] font-subheadline font-bold uppercase tracking-widest text-[#999999] mb-1.5">Access Key (Password)</label>
                 <div className="relative">
                   <Lock size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#555555]" />
                   <input
@@ -239,8 +252,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         </div>
 
         {/* Footer note */}
-        <p className="text-center text-[10px] text-[#555555] mt-6 uppercase tracking-wider">
-          © 2026 CONTROLSAI Industrial Systems — All logic stays local.
+        <p className="text-center text-[10px] text-[#555555] mt-6 uppercase tracking-wider font-bold">
+          © 2026 KURO
         </p>
       </motion.div>
     </div>

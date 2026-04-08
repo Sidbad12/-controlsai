@@ -1,7 +1,11 @@
 // LandingPage.tsx — Precision Architect Landing Page
 // Animated with Framer Motion + Lucide React icons + moving grid background
 
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { dbFirestore } from '../firebase';
+import { toast } from 'sonner';
 import {
   Plus, MessageSquare, GitBranch, HardHat, Clock,
   Trash2, Pencil, PanelLeftClose, PanelLeftOpen,
@@ -89,8 +93,65 @@ export default function LandingPage({
   user, isLoggedIn, onLogout, onStartChat, onStartFlowchart,
   onLogin, onPrivacy, onTerms, uiMode, onToggleMode
 }: LandingPageProps) {
-  if (uiMode === 'tui') {
-    return (
+  const launchPadRef = useRef<HTMLDivElement>(null);
+  const [hasVisitedBottom, setHasVisitedBottom] = useState(false);
+  const [heroKey, setHeroKey] = useState(0);
+
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleWaitlistSubmit = async (e: React.FormEvent) => {
+    if (e.preventDefault) e.preventDefault();
+    
+    if (!waitlistEmail) {
+      toast.error('Input Required', { description: 'Please enter a corporate email to request access.' });
+      return;
+    }
+    
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      // Duplicate Check
+      const q = query(collection(dbFirestore, 'access_requests'), where('email', '==', waitlistEmail));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        setIsSubmitted(true);
+        toast.info('Already Requested', { description: 'We already have a request for this email. Please wait for approval.' });
+        setWaitlistEmail('');
+        return;
+      }
+
+      await addDoc(collection(dbFirestore, 'access_requests'), {
+        email: waitlistEmail,
+        timestamp: serverTimestamp(),
+        status: 'pending'
+      });
+      setIsSubmitted(true);
+      toast.success('Request Received', { description: 'We will verify your credentials and contact you shortly.' });
+      setWaitlistEmail('');
+    } catch (err) {
+      console.error(err);
+      toast.error('Submission Failed', { description: 'Please try again later or contact support.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRequestAccess = () => {
+    launchPadRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const onHeroInView = () => {
+    if (hasVisitedBottom) {
+      setHasVisitedBottom(false);
+      setHeroKey(prev => prev + 1);
+    }
+  };
+
+  const tuiView = (
       <div className="min-h-screen bg-[#1c1917] text-[#d4cfc8] p-8 flex flex-col gap-12 overflow-x-hidden font-mono selection:bg-[#c4a96b] selection:text-[#1c1917]">
         {/* Header */}
         <motion.header
@@ -99,8 +160,9 @@ export default function LandingPage({
         >
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <div className="text-[#7a9eb5] font-bold text-xl tracking-tighter uppercase leading-none">CONTROLSAI</div>
-              <div className="text-[#7a756e] text-[9px] uppercase tracking-[0.3em] font-medium mt-1">V1.0</div>
+              <div className="text-white font-bold text-2xl tracking-tighter uppercase leading-none">
+                CONTROLS<span className="text-[#0050C0]">AI</span>
+              </div>
             </div>
           </div>
           <div className="flex gap-4 items-center">
@@ -131,7 +193,7 @@ export default function LandingPage({
                 <button onClick={onLogin} className="border border-[#2e2b28] text-[#d4cfc8] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#2e2b28] transition-all">
                   [ SIGN_IN ]
                 </button>
-                <button onClick={onStartChat} className="border border-[#7a9eb5] text-[#7a9eb5] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#7a9eb5] hover:text-[#1c1917] transition-all">
+                <button onClick={handleRequestAccess} className="border border-[#7a9eb5] text-[#7a9eb5] px-3 py-1.5 text-[11px] font-bold uppercase hover:bg-[#7a9eb5] hover:text-[#1c1917] transition-all">
                   [ REQUEST_ACCESS ]
                 </button>
               </>
@@ -141,6 +203,9 @@ export default function LandingPage({
 
         {/* Hero */}
         <motion.section
+          key={`hero-tui-${heroKey}`}
+          onViewportEnter={onHeroInView}
+          viewport={{ once: true }}
           initial="hidden" animate="visible" variants={staggerContainer}
           className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center pt-24 pb-20"
         >
@@ -261,6 +326,8 @@ export default function LandingPage({
 
         {/* CTA Banner (Industrial Variant) */}
         <motion.section
+          ref={launchPadRef}
+          onViewportEnter={() => setHasVisitedBottom(true)}
           initial="hidden" whileInView="visible" viewport={{ once: true }}
           variants={staggerContainer}
           className="max-w-4xl mx-auto w-full text-center pt-32 pb-20"
@@ -283,7 +350,7 @@ export default function LandingPage({
 
         {/* Footer */}
         <footer className="mt-auto pt-12 border-t border-[#2e2b28] flex justify-between items-center text-[10px] text-[#4a4640] uppercase tracking-widest">
-          <div>@2026_KURO // INDUSTRIAL_LOGIC_SYNTHESIS</div>
+          <div>© 2026_KURO // INDUSTRIAL_LOGIC_SYNTHESIS</div>
           <div className="flex gap-8">
             <button onClick={onTerms} className="hover:text-[#d4cfc8]">TERMS_OF_SERVICE</button>
             <button onClick={onPrivacy} className="hover:text-[#d4cfc8]">PRIVACY_POLICY</button>
@@ -291,10 +358,9 @@ export default function LandingPage({
           <div className="text-[#7a756e]">AWAITING_COMMAND<span className="animate-pulse ml-2 text-white">_</span></div>
         </footer>
       </div>
-    );
-  }
+  );
 
-  return (
+  return uiMode === 'tui' ? tuiView : (
     <div className="bg-[#001540] text-white min-h-screen overflow-x-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
 
       {/* ── Moving Grid Background ─────────────────────────────────────── */}
@@ -320,16 +386,9 @@ export default function LandingPage({
               <motion.span
                 variants={fadeUp}
                 custom={0.1}
-                className="text-xl font-bold text-white tracking-widest uppercase font-industrial leading-none"
+                className="text-2xl font-bold text-white tracking-widest uppercase font-industrial leading-none"
               >
-                CONTROLSAI
-              </motion.span>
-              <motion.span
-                variants={fadeUp}
-                custom={0.2}
-                className="text-[9px] text-[#C8D8F0]/60 tracking-[0.3em] font-industrial mt-1"
-              >
-                V1.0
+                CONTROLS<span className="text-[#0050C0]">AI</span>
               </motion.span>
             </div>
           </div>
@@ -383,7 +442,7 @@ export default function LandingPage({
                 <motion.button
                   whileHover={{ scale: 1.03, backgroundColor: '#003080' }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={onStartChat}
+                  onClick={handleRequestAccess}
                   className="bg-[#0050C0] text-white px-4 py-1.5 text-xs font-industrial uppercase tracking-wider transition-colors"
                 >
                   Request Access
@@ -395,7 +454,12 @@ export default function LandingPage({
       </motion.header>
 
       {/* ── Hero Section ───────────────────────────────────────────────── */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <motion.section 
+        key={`hero-classic-${heroKey}`}
+        onViewportEnter={onHeroInView}
+        viewport={{ once: true }}
+        className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+      >
         <div>
           {/* Badge */}
           <motion.div
@@ -404,7 +468,7 @@ export default function LandingPage({
             style={{ animation: 'glow-pulse 3s ease-in-out infinite' }}
           >
             <Zap size={12} className="mr-2 text-[#0050C0]" />
-            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">System Status: Online [Terminal 01-A]</span>
+            <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-white">System Status: Online</span>
           </motion.div>
 
           {/* Headline */}
@@ -420,7 +484,7 @@ export default function LandingPage({
           {/* Sub */}
           <motion.p
             initial="hidden" animate="visible" variants={fadeUp} custom={0.45}
-            className="text-[#C8D8F0] text-lg max-w-lg mb-10 leading-relaxed font-medium"
+            className="text-[#C8D8F0] text-lg max-w-lg mb-10 leading-relaxed font-medium font-body"
           >
             Bridge the gap between conceptual flowcharts and production-ready SCL.
             An AI architect designed for industrial precision, safety, and deterministic logic.
@@ -519,7 +583,7 @@ export default function LandingPage({
           {/* Glow behind panel */}
           <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#0050C0] opacity-10 blur-[100px]" />
         </motion.div>
-      </section>
+      </motion.section>
 
       {/* ── Features Bento Grid ────────────────────────────────────────── */}
       <section className="relative z-10 max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
@@ -528,7 +592,7 @@ export default function LandingPage({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="font-industrial text-4xl uppercase tracking-tighter mb-12"
+          className="font-headline text-4xl uppercase tracking-tighter mb-12"
         >
           Engineered Modules
         </motion.h2>
@@ -547,8 +611,8 @@ export default function LandingPage({
               className={`${wide ? 'md:col-span-2' : ''} bg-white/5 p-8 border border-white/10 transition-colors cursor-default`}
             >
               <Icon size={36} className="text-[#0050C0] mb-4" />
-              <h3 className="font-industrial text-2xl uppercase mb-3">{title}</h3>
-              <p className="text-[#999999] text-sm leading-relaxed">{desc}</p>
+              <h3 className="font-subheadline text-2xl uppercase mb-3">{title}</h3>
+              <p className="text-[#999999] text-sm leading-relaxed font-body">{desc}</p>
             </motion.div>
           ))}
 
@@ -560,8 +624,8 @@ export default function LandingPage({
             className="bg-white/5 p-8 border border-white/10 transition-all cursor-pointer group"
           >
             <GitBranch size={36} className="text-[#0050C0] mb-4 group-hover:scale-110 transition-transform" />
-            <h3 className="font-industrial text-2xl uppercase mb-3">Logic Designer</h3>
-            <p className="text-[#999999] text-sm leading-relaxed mb-4">Visual flowchart to SCL in seconds.</p>
+            <h3 className="font-subheadline text-2xl uppercase mb-3">Logic Designer</h3>
+            <p className="text-[#999999] text-sm leading-relaxed mb-4 font-body">Visual flowchart to SCL in seconds.</p>
             <span className="text-[#0050C0] text-xs font-industrial uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all">
               Open Designer <ArrowRight size={12} />
             </span>
@@ -607,11 +671,11 @@ export default function LandingPage({
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as any, delay: 0.15 }}
             className="order-1 lg:order-2"
           >
-            <h2 className="font-industrial text-5xl md:text-6xl uppercase tracking-tighter mb-8 leading-none">
+            <h2 className="font-headline text-5xl md:text-6xl uppercase tracking-tighter mb-8 leading-none">
               Built by Engineers. <br />
               For Engineers.
             </h2>
-            <p className="text-[#2A2A2A] text-lg mb-8 font-medium leading-relaxed">
+            <p className="text-[#2A2A2A] text-lg mb-8 font-medium leading-relaxed font-body">
               We understand the high stakes of industrial automation. One wrong semi-colon can cost millions in downtime. CONTROLSAI isn't just an LLM wrapper — it's a domain-specific logic engine designed to respect the physical constraints of industrial hardware.
             </p>
             <ul className="space-y-4 mb-10">
@@ -642,12 +706,15 @@ export default function LandingPage({
       </section>
 
       {/* ── CTA Banner ─────────────────────────────────────────────────── */}
-      <section className="relative z-10 py-24 max-w-5xl mx-auto px-6 text-center">
+      <section 
+        ref={launchPadRef}
+        className="relative z-10 py-24 max-w-5xl mx-auto px-6 text-center"
+      >
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-industrial text-5xl uppercase mb-8"
+          className="font-headline text-5xl uppercase mb-8"
         >
           Ready to evolve your logic?
         </motion.h2>
@@ -667,19 +734,30 @@ export default function LandingPage({
           transition={{ delay: 0.3 }}
           className="flex flex-col md:flex-row justify-center gap-4"
         >
-          <input
-            className="bg-white/5 border border-white/10 px-6 py-4 w-full md:w-96 text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-[#0050C0] focus:border-[#0050C0] transition-all"
-            placeholder="Enter corporate email..."
-            type="email"
-          />
-          <motion.button
-            onClick={onStartChat}
-            whileHover={{ scale: 1.03, backgroundColor: '#003080' }}
-            whileTap={{ scale: 0.97 }}
-            className="bg-[#0050C0] text-white px-8 py-4 font-industrial uppercase tracking-widest text-lg transition-all"
-          >
-            {isLoggedIn ? 'Return to Terminal' : 'Request Access'}
-          </motion.button>
+          {isSubmitted ? (
+            <div className="bg-[#6a9e7f]/10 border border-[#6a9e7f]/30 p-4 font-mono text-sm text-[#6a9e7f]">
+              ACCESS_REQUEST_SENT: Our engineers will verify your credentials.
+            </div>
+          ) : (
+            <>
+              <input
+                className="bg-white/5 border border-white/10 px-6 py-4 w-full md:w-96 text-white font-mono text-sm focus:outline-none focus:ring-1 focus:ring-[#0050C0] focus:border-[#0050C0] transition-all"
+                placeholder="Enter corporate email..."
+                type="email"
+                value={waitlistEmail}
+                onChange={(e) => setWaitlistEmail(e.target.value)}
+              />
+              <motion.button
+                onClick={handleWaitlistSubmit}
+                disabled={isSubmitting}
+                whileHover={{ scale: 1.03, backgroundColor: '#003080' }}
+                whileTap={{ scale: 0.97 }}
+                className="bg-[#0050C0] text-white px-8 py-4 font-industrial uppercase tracking-widest text-lg transition-all disabled:opacity-50"
+              >
+                {isSubmitting ? 'Processing...' : 'Request Access'}
+              </motion.button>
+            </>
+          )}
         </motion.div>
       </section>
 
@@ -687,7 +765,7 @@ export default function LandingPage({
       <footer className="relative z-10 bg-[#001540] border-t border-white/5 py-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-8">
           <div className="mb-6 md:mb-0">
-            <p className="text-[#999999] text-xs font-medium uppercase tracking-widest">@2026 KURO</p>
+            <p className="text-[#999999] text-[10px] font-bold uppercase tracking-widest">© 2026 KURO</p>
           </div>
           <div className="flex gap-8">
             <button onClick={onTerms} className="text-[#999999] hover:text-[#0050C0] text-xs font-medium uppercase tracking-widest transition-colors">Terms of Service</button>

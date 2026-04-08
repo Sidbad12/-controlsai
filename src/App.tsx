@@ -14,6 +14,10 @@ import PrivacyPage      from './components/PrivacyPage';
 import TermsPage        from './components/TermsPage';
 import LogicWorkbench   from './components/LogicWorkbench';
 
+import { Worker } from '@react-pdf-viewer/core';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+
 import { API_BASE, API_KEY }                 from './config';
 import { generateId, sanitizeInput, buildHistory } from './utils';
 import { auth } from './firebase';
@@ -102,6 +106,11 @@ export default function App() {
       setActiveId(sessions[0].id);
     }
   }, [sessions, activeId]);
+
+  // Reset scroll when view changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
 
   // Persist sessions to cloud auth state
   useEffect(() => {
@@ -218,7 +227,7 @@ export default function App() {
   }, []);
 
   const handlePdfClick = useCallback((url: string, pages: number[]) => {
-    setPdfUrl(url);
+    setPdfUrl(prev => prev === url ? prev : url);
     setPdfPage(pages?.length > 0 ? Math.max(0, pages[0] - 1) : 0);
   }, []);
 
@@ -242,6 +251,8 @@ export default function App() {
     triggerSave('saving');
 
     try {
+      const token = await auth.currentUser?.getIdToken();
+      
       const history = buildHistory(activeSession.messages);
       const hiddenRules = `\n\n%% SYSTEM: Output ONE complete SCL Function Block.\n%% Wrap all code in <SCL_CODE>...</SCL_CODE> tags.\n%% Siemens S7-1200 only. Timer calls: "Timer_DB".TON(IN:=..., PT:=...);`;
 
@@ -257,7 +268,7 @@ export default function App() {
         method : 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'x-api-key': API_KEY
+          'Authorization': `Bearer ${token}`
         },
         body   : JSON.stringify(body),
       });
@@ -338,6 +349,7 @@ export default function App() {
         onLogin={(user) => { 
           // Firebase onAuthStateChanged handles routing to dashboard
         }}
+        onBack={() => setView('landing')}
       />
     );
   }
@@ -347,158 +359,160 @@ export default function App() {
 
   // ── Dashboard ─────────────────────────────────────────────────────────────
   return (
-    <div 
-      className={`flex h-screen overflow-hidden transition-colors duration-300 ${
-        uiMode === 'tui' ? 'bg-[#1c1917]' : 'bg-[#fcf9f8]'
-      }`} 
-    >
+    <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+      <div 
+        className={`flex h-screen overflow-hidden transition-colors duration-300 ${
+          uiMode === 'tui' ? 'bg-[#1c1917]' : 'bg-[#fcf9f8]'
+        }`} 
+      >
 
-      {/* Command Palette */}
-      <CommandPalette
-        open={paletteOpen}
-        sessions={sessions}
-        onClose={() => setPalette(false)}
-        onNew={handleNewSession}
-        onSwitch={(id) => { handleSwitchSession(id); setView('dashboard'); }}
-      />
+        {/* Command Palette */}
+        <CommandPalette
+          open={paletteOpen}
+          sessions={sessions}
+          onClose={() => setPalette(false)}
+          onNew={handleNewSession}
+          onSwitch={(id) => { handleSwitchSession(id); setView('dashboard'); }}
+        />
 
-      {/* Image zoom modal */}
-      <AnimatePresence>
-        {modalImg && (
-          <motion.div
-            key="modal"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-10 cursor-zoom-out"
-            onClick={() => setModalImg(null)}
-          >
-            <img src={modalImg} className="max-h-full max-w-full object-contain" alt="Zoomed" />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* PDF Modal */}
-      <AnimatePresence>
-        {pdfUrl && (
-          <PdfViewerModal key="pdf" pdfUrl={pdfUrl} initialPage={pdfPage} onClose={() => setPdfUrl(null)} />
-        )}
-      </AnimatePresence>
-
-      <Sidebar
-        user={authUser}
-        sessions={sessions}
-        activeId={activeId}
-        collapsed={collapsed}
-        version={version}
-        uiMode={uiMode}
-        onNewSession={handleNewSession}
-        onSwitchSession={handleSwitchSession}
-        onDeleteSession={handleDeleteSession}
-        onVersionChange={setVersion}
-        onLogout={handleLogout}
-        onToggleCollapse={() => setCollapsed((c) => !c)}
-        onOpenPalette={() => setPalette(true)}
-      />
-
-      {/* Main panel */}
-      <main className={`flex-1 flex flex-col min-w-0 relative overflow-hidden ${uiMode === 'tui' ? 'bg-[#1c1917]' : 'bg-[#fcf9f8]'}`}>
-
-        {/* Header */}
-        <header className={`flex justify-between items-center w-full px-8 py-4 border-b backdrop-blur-md sticky top-0 z-40 ${
-          uiMode === 'tui' ? 'bg-[#1c1917]/80 border-[#2e2b28]' : 'bg-[#fcf9f8]/80 border-[#C8D8F0]/20'
-        }`}>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="p-1 -ml-1 text-[#757681] hover:text-[#000d33] transition-colors"
-              title={collapsed ? "Open Sidebar" : "Close Sidebar"}
+        {/* Image zoom modal */}
+        <AnimatePresence>
+          {modalImg && (
+            <motion.div
+              key="modal"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-10 cursor-zoom-out"
+              onClick={() => setModalImg(null)}
             >
-              {collapsed ? (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/><path d="m14 15-3-3 3-3"/></svg>
-              )}
-            </button>
-            <div className="w-[1px] h-4 bg-[#757681]/20 mx-1" />
-            <button
-              onClick={() => setView('landing')}
-              className="text-[#757681] hover:text-[#000d33] transition-colors"
-              title="Back to home"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-            <nav className="flex items-center gap-2 text-xs font-medium text-[#757681]">
-              <span>Projects</span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
-              <span className="text-[#002060] font-bold">{activeSession.title.slice(0, 30)}</span>
-            </nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end">
-              <span className={`text-[12px] font-bold tracking-tighter ${uiMode === 'tui' ? 'text-[#7a9eb5]' : 'text-[#002060]'}`}>
-                CONTROLSAI
-              </span>
-              <span className={`text-[8px] font-industrial tracking-[0.2em] opacity-60 ${uiMode === 'tui' ? 'text-[#7a756e]' : 'text-[#757681]'}`}>
-                V1.0
-              </span>
-            </div>
-            
-            <button 
-              onClick={toggleUiMode}
-              className={`px-3 py-1 text-[10px] font-bold uppercase border transition-all ${
-                uiMode === 'tui' 
-                  ? 'border-[#6a9e7f] text-[#6a9e7f] hover:bg-[#6a9e7f] hover:text-[#1c1917]' 
-                  : 'border-[#0050C0] text-[#0050C0] hover:bg-[#0050C0] hover:text-white'
-              }`}
-            >
-              {uiMode === 'tui' ? '[ CLASSIC_VIEW ]' : 'Terminal View'}
-            </button>
-          </div>
-        </header>
-
-        <div className={`flex-1 flex min-h-0 w-full overflow-hidden ${uiMode === 'tui' ? 'gap-0 p-8 pt-4' : ''}`}>
-          <div 
-            className="flex-1 min-w-0 flex flex-col relative h-full" 
-            style={uiMode === 'tui' ? { flex: `1 1 0%` } : {}}
-          >
-            {/* Chat */}
-            <ChatArea
-              session={activeSession}
-              loading={loading}
-              uiMode={uiMode}
-              onImageClick={setModalImg}
-              onPdfClick={handlePdfClick}
-            />
-
-            {/* Input */}
-            <InputBar
-              input={input}
-              loading={loading}
-              mode={activeSession.mode}
-              uiMode={uiMode}
-              saveState={saveState}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onSubmit={handleSubmit}
-            />
-          </div>
-
-          {uiMode === 'tui' && (
-            <>
-              {/* Resize Handle */}
-              <div
-                onMouseDown={handleMouseDown}
-                className={`w-1 cursor-col-resize hover:bg-[--active] transition-colors h-full shrink-0 z-50 ${isResizing ? 'bg-[--active]' : 'bg-[--border]'}`}
-              />
-              <div 
-                className="flex flex-col shrink-0 h-full border-l border-[--border] min-w-0" 
-                style={{ flex: `0 0 ${workbenchWidth}%` }}
-              >
-                <LogicWorkbench messages={activeSession.messages} />
-              </div>
-            </>
+              <img src={modalImg} className="max-h-full max-w-full object-contain" alt="Zoomed" />
+            </motion.div>
           )}
-        </div>
-      </main>
-    </div>
+        </AnimatePresence>
+
+        {/* PDF Modal */}
+        <AnimatePresence>
+          {pdfUrl && (
+            <PdfViewerModal key="pdf" pdfUrl={pdfUrl} initialPage={pdfPage} onClose={() => setPdfUrl(null)} />
+          )}
+        </AnimatePresence>
+
+        <Sidebar
+          user={authUser}
+          sessions={sessions}
+          activeId={activeId}
+          collapsed={collapsed}
+          version={version}
+          uiMode={uiMode}
+          onNewSession={handleNewSession}
+          onSwitchSession={handleSwitchSession}
+          onDeleteSession={handleDeleteSession}
+          onVersionChange={setVersion}
+          onLogout={handleLogout}
+          onToggleCollapse={() => setCollapsed((c) => !c)}
+          onOpenPalette={() => setPalette(true)}
+        />
+
+        {/* Main panel */}
+        <main className={`flex-1 flex flex-col min-w-0 relative overflow-hidden ${uiMode === 'tui' ? 'bg-[#1c1917]' : 'bg-[#fcf9f8]'}`}>
+
+          {/* Header */}
+          <header className={`flex justify-between items-center w-full px-8 py-4 border-b backdrop-blur-md sticky top-0 z-40 ${
+            uiMode === 'tui' ? 'bg-[#1c1917]/80 border-[#2e2b28]' : 'bg-[#fcf9f8]/80 border-[#C8D8F0]/20'
+          }`}>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="p-1 -ml-1 text-[#757681] hover:text-[#000d33] transition-colors"
+                title={collapsed ? "Open Sidebar" : "Close Sidebar"}
+              >
+                {collapsed ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="9" x2="9" y1="3" y2="21"/><path d="m14 15-3-3 3-3"/></svg>
+                )}
+              </button>
+              <div className="w-[1px] h-4 bg-[#757681]/20 mx-1" />
+              <button
+                onClick={() => setView('landing')}
+                className="text-[#757681] hover:text-[#000d33] transition-colors"
+                title="Back to home"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <nav className="flex items-center gap-2 text-xs font-medium text-[#757681]">
+                <span>Projects</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
+                <span className="text-[#002060] font-bold">{activeSession.title.slice(0, 30)}</span>
+              </nav>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex flex-col items-end">
+                <span className={`text-[12px] font-bold tracking-tighter ${uiMode === 'tui' ? 'text-[#7a9eb5]' : 'text-[#002060]'}`}>
+                  CONTROLSAI
+                </span>
+                <span className={`text-[8px] font-industrial tracking-[0.2em] opacity-60 ${uiMode === 'tui' ? 'text-[#7a756e]' : 'text-[#757681]'}`}>
+                  V1.0
+                </span>
+              </div>
+              
+              <button 
+                onClick={toggleUiMode}
+                className={`px-3 py-1 text-[10px] font-bold uppercase border transition-all ${
+                  uiMode === 'tui' 
+                    ? 'border-[#6a9e7f] text-[#6a9e7f] hover:bg-[#6a9e7f] hover:text-[#1c1917]' 
+                    : 'border-[#0050C0] text-[#0050C0] hover:bg-[#0050C0] hover:text-white'
+                }`}
+              >
+                {uiMode === 'tui' ? '[ CLASSIC_VIEW ]' : 'Terminal View'}
+              </button>
+            </div>
+          </header>
+
+          <div className={`flex-1 flex min-h-0 w-full overflow-hidden ${uiMode === 'tui' ? 'gap-0 p-8 pt-4' : ''}`}>
+            <div 
+              className="flex-1 min-w-0 flex flex-col relative h-full" 
+              style={uiMode === 'tui' ? { flex: `1 1 0%` } : {}}
+            >
+              {/* Chat */}
+              <ChatArea
+                session={activeSession}
+                loading={loading}
+                uiMode={uiMode}
+                onImageClick={setModalImg}
+                onPdfClick={handlePdfClick}
+              />
+
+              {/* Input */}
+              <InputBar
+                input={input}
+                loading={loading}
+                mode={activeSession.mode}
+                uiMode={uiMode}
+                saveState={saveState}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onSubmit={handleSubmit}
+              />
+            </div>
+
+            {uiMode === 'tui' && (
+              <>
+                {/* Resize Handle */}
+                <div
+                  onMouseDown={handleMouseDown}
+                  className={`w-1 cursor-col-resize hover:bg-[--active] transition-colors h-full shrink-0 z-50 ${isResizing ? 'bg-[--active]' : 'bg-[--border]'}`}
+                />
+                <div 
+                  className="flex flex-col shrink-0 h-full border-l border-[--border] min-w-0" 
+                  style={{ flex: `0 0 ${workbenchWidth}%` }}
+                >
+                  <LogicWorkbench messages={activeSession.messages} />
+                </div>
+              </>
+            )}
+          </div>
+        </main>
+      </div>
+    </Worker>
   );
 }
