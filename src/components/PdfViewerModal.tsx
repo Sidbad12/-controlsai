@@ -27,6 +27,9 @@ export default function PdfViewerModal({ pdfUrl, initialPage, onClose }: Props) 
       <Drawer.Portal>
         <Drawer.Overlay className="fixed inset-0 bg-black/60 z-[9999]" onClick={onClose} />
         <Drawer.Content className="bg-white flex flex-col rounded-t-[20px] h-[90vh] mt-24 fixed bottom-0 left-0 right-0 z-[10000] focus:outline-none shadow-2xl">
+          <Drawer.Title className="sr-only">Referenced Siemens Documentation</Drawer.Title>
+          <Drawer.Description className="sr-only">Detailed technical manual excerpt related to your query.</Drawer.Description>
+          
           <div className="p-4 bg-white rounded-t-[20px] flex-1 overflow-hidden flex flex-col">
             <div className="mx-auto w-12 h-1.5 shrink-0 rounded-full bg-gray-300 mb-6 cursor-grab active:cursor-grabbing" />
             

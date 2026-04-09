@@ -241,7 +241,7 @@ export default function App() {
     const updatedUserSession = { 
        ...activeSession, 
        messages: [...activeSession.messages, userMsg],
-       title: activeSession.messages.length === 0 ? text.slice(0, 50) + (text.length > 50 ? '…' : '') : activeSession.title
+       title: activeSession.messages.length === 0 ? text.slice(0, 30) + (text.length > 30 ? '…' : '') : activeSession.title
     };
 
     setSessions((prev) => prev.map((s) => s.id === activeId ? updatedUserSession : s));

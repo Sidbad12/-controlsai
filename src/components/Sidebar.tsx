@@ -95,13 +95,13 @@ export default function Sidebar({
           <div key={s.id} className="group relative">
             <button
               onClick={() => onSwitchSession(s.id)}
-              className={`w-full text-left p-3 flex flex-col gap-1 transition-all border ${
+              className={`w-full text-left p-3 flex flex-col gap-1 transition-all border min-w-0 ${
                 activeId === s.id 
                   ? (uiMode === 'tui' ? 'bg-[#252220] border-[#c4a96b]/50' : 'bg-[#003080] border-[#0050C0]/50') 
                   : 'bg-transparent border-transparent hover:bg-white/5'
               }`}
             >
-              <span className={`text-xs font-bold leading-tight truncate px-1 transition-colors ${
+              <span className={`text-xs font-bold leading-tight truncate w-full px-1 transition-colors ${
                 activeId === s.id ? 'text-white' : 'text-[#7a9eb5] group-hover:text-white'
               }`}>
                 {uiMode === 'tui' ? `ID_${s.title.toUpperCase().replace(/\s/g, '_')}` : s.title}
